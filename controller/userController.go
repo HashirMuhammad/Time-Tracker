@@ -19,11 +19,11 @@ type Controller struct {
 }
 
 type UserRequest struct {
-	First_Name string `json:"first_name"`
-	Last_Name  string `json:"last_name"`
-	Email      string `json:"email"`
-	Password   string `json:"password"`
-	Image_Url  string `json:"image_url"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+	Password  string `json:"password"`
+	ImageUrl  string `json:"image_url"`
 }
 
 type userlogin struct {
@@ -41,19 +41,24 @@ func (c Controller) CreateUser(w http.ResponseWriter, r *http.Request) {
 	err = c.Db.GetUserByEmail(req.Email)
 	if err != nil && err != sql.ErrNoRows {
 		json.NewEncoder(w).Encode(fmt.Sprintf("err: %s", err.Error()))
+
 		return
 	}
 
 	password := req.Password
 	hash, err := HashPassword(password)
 	if err != nil {
-		json.NewEncoder(w).Encode(fmt.Sprintf("err: %s", err.Error()))
+		err = json.NewEncoder(w).Encode(fmt.Sprintf("err: %s", err.Error()))
+
+		return
 	}
-	user := model.User{First_Name: req.First_Name, Last_Name: req.Last_Name, Email: req.Email, Password: hash, Image_Url: req.Image_Url, Created_At: time.Now(), Updated_At: time.Now()}
+	user := model.User{First_Name: req.FirstName, Last_Name: req.LastName, Email: req.Email, Password: hash, Image_Url: req.ImageUrl, Created_At: time.Now(), Updated_At: time.Now()}
 	err = c.Db.CreateUser(user)
 	w.Header().Set("Content-Type", "application/json")
 	if err != nil {
 		json.NewEncoder(w).Encode(fmt.Sprintf("err: %s", err.Error()))
+
+		return
 	}
 	json.NewEncoder(w).Encode("user created successfully ")
 
@@ -78,17 +83,21 @@ func (c Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 	hash, err := HashPassword(req.Password)
 	if err != nil {
 		json.NewEncoder(w).Encode(fmt.Sprintf("err: %s", err.Error()))
+
+		return
 	}
 
 	dbPassword := c.Db.GetPasswordHash(req.Email)
 	if dbPassword == "" {
 		json.NewEncoder(w).Encode("Incorrect email or password")
+
 		return
 	}
 
 	CheckPasswordHash(dbPassword, hash)
 	if err != nil {
 		json.NewEncoder(w).Encode("Incorrect email or password")
+
 		return
 	} else {
 		userid := c.Db.GetUserIdByEmail(req.Email)
@@ -96,6 +105,7 @@ func (c Controller) LoginUser(w http.ResponseWriter, r *http.Request) {
 		token, err := CreateToken(int64(id))
 		if err != nil {
 			json.NewEncoder(w).Encode(fmt.Sprintf("err: %s", err.Error()))
+
 			return
 		}
 		w.Header().Set("Content-Type", token)

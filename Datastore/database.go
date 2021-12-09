@@ -12,6 +12,7 @@ type Datastore interface {
 	GetPasswordHash(email string) string
 	GetUserIdByEmail(email string) string
 	taskQueries
+	projectQueries
 }
 
 type Database struct {

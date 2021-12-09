@@ -7,6 +7,7 @@ import (
 
 type task struct {
 	Id          int64     `db:"id"`
+	ProjectId   int64     `db:"project_id"`
 	UserId      int64     `db:"user_id"`
 	Description string    `db:"description"`
 	StartedAt   time.Time `db:"started_at"`
@@ -16,6 +17,8 @@ type task struct {
 type taskQueries interface {
 	CreateTask(task model.Task) error
 	StopTask(taskID, userID int64) error
+	GetTaskByProjectID(projectID int64) error
+	UpdateTask(task model.Task, projectID, userID int64) error
 	GetTasksByUserID(userID int64) ([]model.Task, error)
 	GetLast24HrTask(userID int64, from time.Time) ([]model.Task, error)
 	GetLastWeekTask(userID int64, from time.Time) ([]model.Task, error)
@@ -24,11 +27,11 @@ type taskQueries interface {
 
 func (d Database) CreateTask(task model.Task) error {
 	query := `INSERT INTO tasks 
-                ( user_id, description, started_at ) 
+                ( project_id, user_id, description, started_at ) 
               VALUES 
-                ($1 , $2 , $3)`
+                ($1 , $2 , $3, $4)`
 
-	_, err := d.conn.Exec(query, task.UserId, task.Description, task.StartedAt)
+	_, err := d.conn.Exec(query, task.ProjectId, task.UserId, task.Description, task.StartedAt)
 
 	return err
 }
@@ -46,10 +49,36 @@ func (d Database) StopTask(taskID, userID int64) error {
 	return err
 }
 
+func (d Database) GetTaskByProjectID(projectID int64) error {
+	query := `SELECT 
+				project_id
+			FROM
+				tasks
+			WHERE
+				project_id = $1`
+
+	err := d.conn.Get(&task{}, query, projectID)
+
+	return err
+}
+
+func (d Database) UpdateTask(task model.Task, projectID, userID int64) error {
+	query := `UPDATE  
+    				tasks 
+			  SET 
+				    description = $1 
+			  WHERE 
+					project_id = $2 AND user_id = $3`
+
+	_, err := d.conn.Exec(query, task.Description, projectID, userID)
+
+	return err
+}
+
 func (d Database) GetTasksByUserID(userID int64) ([]model.Task, error) {
 	var tasks []task
 	query := `SELECT 
-				id, description, started_at, ended_at
+				id, project_id, description, started_at, ended_at
 				FROM 
 				     tasks
 				WHERE 
@@ -64,6 +93,7 @@ func (d Database) GetTasksByUserID(userID int64) ([]model.Task, error) {
 	for i, _ := range tasks {
 		resp = append(resp, model.Task{
 			Id:          tasks[i].Id,
+			ProjectId:   tasks[i].ProjectId,
 			Description: tasks[i].Description,
 			StartedAt:   tasks[i].StartedAt,
 			EndedAt:     tasks[i].EndedAt,
@@ -76,7 +106,7 @@ func (d Database) GetTasksByUserID(userID int64) ([]model.Task, error) {
 func (d Database) GetLast24HrTask(userID int64, from time.Time) ([]model.Task, error) {
 	var tasks []task
 	query := `SELECT 
-				id, description, started_at, ended_at
+				id, project_id, description, started_at, ended_at
 				FROM 
 				     tasks
 				WHERE 
@@ -89,6 +119,7 @@ func (d Database) GetLast24HrTask(userID int64, from time.Time) ([]model.Task, e
 	for i, _ := range tasks {
 		resp = append(resp, model.Task{
 			Id:          tasks[i].Id,
+			ProjectId:   tasks[i].ProjectId,
 			Description: tasks[i].Description,
 			StartedAt:   tasks[i].StartedAt,
 			EndedAt:     tasks[i].EndedAt,
@@ -101,7 +132,7 @@ func (d Database) GetLast24HrTask(userID int64, from time.Time) ([]model.Task, e
 func (d Database) GetLastWeekTask(userID int64, from time.Time) ([]model.Task, error) {
 	var tasks []task
 	query := `SELECT 
-				id, description, started_at, ended_at
+				id, project_id, description, started_at, ended_at
 				FROM 
 				     tasks
 				WHERE 
@@ -114,6 +145,7 @@ func (d Database) GetLastWeekTask(userID int64, from time.Time) ([]model.Task, e
 	for i, _ := range tasks {
 		resp = append(resp, model.Task{
 			Id:          tasks[i].Id,
+			ProjectId:   tasks[i].ProjectId,
 			Description: tasks[i].Description,
 			StartedAt:   tasks[i].StartedAt,
 			EndedAt:     tasks[i].EndedAt,
@@ -126,7 +158,7 @@ func (d Database) GetLastWeekTask(userID int64, from time.Time) ([]model.Task, e
 func (d Database) GetLastMonthTask(userID int64, from time.Time) ([]model.Task, error) {
 	var tasks []task
 	query := `SELECT 
-				id, description, started_at, ended_at
+				id, project_id, description, started_at, ended_at
 				FROM 
 				     tasks
 				WHERE 
@@ -141,6 +173,7 @@ func (d Database) GetLastMonthTask(userID int64, from time.Time) ([]model.Task, 
 	for i, _ := range tasks {
 		resp = append(resp, model.Task{
 			Id:          tasks[i].Id,
+			ProjectId:   tasks[i].ProjectId,
 			Description: tasks[i].Description,
 			StartedAt:   tasks[i].StartedAt,
 			EndedAt:     tasks[i].EndedAt,
