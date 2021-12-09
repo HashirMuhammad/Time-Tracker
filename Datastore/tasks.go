@@ -1,8 +1,9 @@
 package datastore
 
 import (
-	"github.com/HashirMuhammad/Time-Tracker-main/model"
 	"time"
+
+	"github.com/HashirMuhammad/Time-Tracker-main/model"
 )
 
 type task struct {

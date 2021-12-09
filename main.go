@@ -2,9 +2,10 @@ package main
 
 import (
 	datastore "github.com/HashirMuhammad/Time-Tracker-main/Datastore"
+	"net/http"
+
 	"github.com/HashirMuhammad/Time-Tracker-main/controller"
 	"github.com/gorilla/mux"
-	"net/http"
 )
 
 func main() {

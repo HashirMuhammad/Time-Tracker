@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	datastore "github.com/HashirMuhammad/Time-Tracker-main/Datastore"
-	"github.com/HashirMuhammad/Time-Tracker-main/model"
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	datastore "github.com/HashirMuhammad/Time-Tracker-main/Datastore"
+	"github.com/HashirMuhammad/Time-Tracker-main/model"
+	"github.com/dgrijalva/jwt-go"
 )
 
 type Controller struct {
